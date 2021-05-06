@@ -1,0 +1,12 @@
+{% extends 'test_app/base.html' %}
+
+{% block content %}
+<h1>Create New {{type}} </h1>
+<br/>
+<form method="post" action="{% url 'create' type %}">
+    {% csrf_token %}
+    {{form.as_p}}
+    <button type="submit", name="save">Create New </button>
+</form>
+{% endblock %}
+

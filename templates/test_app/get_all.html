@@ -1,0 +1,103 @@
+{% extends "test_app/base.html" %}
+
+
+{% block style %}
+ table, th, td { border: 1px solid black; width: 800px; text-align:center}
+button {width:120px; height:50px;font-weight: bold;font-size: 80%;}
+{% endblock %}
+
+{% block content %}
+{% if type == "song" %}
+    {% if ls %}
+    <table>
+        <tr>
+            <th style = "display:none" > Id</th>
+            <th> Name </th>
+            <th> Duration In Sec</th>
+            <th> Upload time</th>
+            <th> Edit </th>
+            <th> Delete </th>
+        </tr>
+    {% for item in ls %}
+        <tr>
+            <td  style = "display:none">{{item.id}}</td>
+            <td>{{item.name}}</td>
+            <td>{{item.duration_in_sec}}</td>
+            <td>{{item.upload_time}}</td>
+            <td>
+                <a href="{% url 'update' type item.id %}" >
+                    Edit
+                </a>
+            </td>
+            <td><a href="{% url 'delete' type item.id %}">Delete</a></td>
+        </tr>
+    {% endfor %}
+    </table>
+    {% else %}
+        <p>No Songs are Available</p>
+    {% endif %}
+{% elif type == "podcast" %}
+    {% if ls %}
+    <table>
+        <tr>
+            <th style = "display:none" > Id</th>
+            <th> Name </th>
+            <th> Duration In Sec</th>
+            <th> Upload time</th>
+            <th> Host </th>
+            <th> Participants </th>
+            <th> Edit </th>
+            <th> Delete </th>
+        </tr>
+    {% for item in ls %}
+        <tr>
+            <td style = "display:none" >{{item.id}}</td>
+            <td>{{item.name}}</td>
+            <td>{{item.duration_in_sec}}</td>
+            <td>{{item.upload_time}}</td>
+            <td>{{item.host}}</td>
+            <td>{{item.participants}}</td>
+            <td><a href="{% url 'update' type item.id %}">Edit</a></td>
+            <td><a href="{% url 'delete' type item.id %}">Delete</a></td>
+        </tr>
+    {% endfor %}
+    </table>
+    {% else %}
+        <p>No Podcast are Available</p>
+    {% endif %}
+{% elif type == "audiobook" %}
+    {% if ls %}
+    <table>
+        <tr>
+            <th style = "display:none" > Id</th>
+            <th> Title </th>
+            <th> Author of Title</th>
+            <th> Narrator </th>
+            <th> Duration In Sec </th>
+            <th> Upload time </th>
+            <th> Edit </th>
+            <th> Delete </th>
+        </tr>
+    {% for item in ls %}
+        <tr>
+            <td style = "display:none" >{{item.id}}</td>
+            <td>{{item.title}}</td>
+            <td>{{item.author}}</td>
+            <td>{{item.narrator}}</td>
+            <td>{{item.duration_in_sec}}</td>
+            <td>{{item.upload_time}}</td>
+            <td><a href="{% url 'update' type item.id %}">Edit</a></td>
+            <td><a href="{% url 'delete' type item.id %}">Delete</a></td>
+        </tr>
+    {% endfor %}
+    </table>
+    {% else %}
+        <p>No Audiobooks are Available</p>
+    {% endif %}
+{% endif %}
+<br>
+<br>
+<button>
+    <a href="{% url 'create' type %}" >Create New</a>
+</button>
+{% endblock %}

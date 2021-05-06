@@ -1,0 +1,11 @@
+{% extends 'test_app/base.html' %}
+
+{% block content %}
+<h1>Update {{type}} </h1>
+<br/>
+<form method="post" action="{% url 'update' type update_id %}">
+    {% csrf_token %}
+    {{form.as_p}}
+    <button type="submit", name="save">Update </button>
+</form>
+{% endblock %}

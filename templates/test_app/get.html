@@ -1,0 +1,79 @@
+{% extends "test_app/base.html" %}
+
+
+{% block style %}
+ table, th, td { border: 1px solid black; width: 800px; text-align:center}
+{% endblock %}
+
+{% block content %}
+{% if type == "song" %}
+    <table>
+        <tr>
+            <th style = "display:none" > Id</th>
+            <th> Name </th>
+            <th> Duration In Sec</th>
+            <th> Upload time</th>
+            <th> Edit </th>
+            <th> Delete </th>
+        </tr>
+        <tr>
+            <td  style = "display:none">{{item.id}}</td>
+            <td>{{item.name}}</td>
+            <td>{{item.duration_in_sec}}</td>
+            <td>{{item.upload_time}}</td>
+            <td>
+                <a href="{% url 'update' type item.id %}" >
+                    Edit
+                </a>
+            </td>
+            <td><a href="{% url 'delete' type item.id %}">Delete</a></td>
+        </tr>
+    </table>
+{% elif type == "podcast" %}
+    <table>
+        <tr>
+            <th style = "display:none" > Id</th>
+            <th> Name </th>
+            <th> Duration In Sec</th>
+            <th> Upload time</th>
+            <th> Host </th>
+            <th> Participants </th>
+            <th> Edit </th>
+            <th> Delete </th>
+        </tr>
+        <tr>
+            <td style = "display:none" >{{item.id}}</td>
+            <td>{{item.name}}</td>
+            <td>{{item.duration_in_sec}}</td>
+            <td>{{item.upload_time}}</td>
+            <td>{{item.host}}</td>
+            <td>{{item.participants}}</td>
+            <td><a href="{% url 'update' type item.id %}">Edit</a></td>
+            <td><a href="{% url 'delete' type item.id %}">Delete</a></td>
+        </tr>
+    </table>
+{% elif type == "audiobook" %}
+    <table>
+        <tr>
+            <th style = "display:none" > Id</th>
+            <th> Title </th>
+            <th> Author of Title</th>
+            <th> Narrator </th>
+            <th> Duration In Sec </th>
+            <th> Upload time </th>
+            <th> Edit </th>
+            <th> Delete </th>
+        </tr>
+        <tr>
+            <td style = "display:none" >{{item.id}}</td>
+            <td>{{item.title}}</td>
+            <td>{{item.author}}</td>
+            <td>{{item.narrator}}</td>
+            <td>{{item.duration_in_sec}}</td>
+            <td>{{item.upload_time}}</td>
+            <td><a href="{% url 'update' type item.id %}">Edit</a></td>
+            <td><a href="{% url 'delete' type item.id %}">Delete</a></td>
+        </tr>
+    </table>
+{% endif %}
+{% endblock %}
