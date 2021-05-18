@@ -10,8 +10,7 @@ def validate_date(date):
         raise ValidationError("Date cannot be in the past")
 
 
-# Create your models here.
-class Song(models.Model):
+class MainClass(models.Model):
     name = models.CharField(max_length=100)
     duration_in_sec = models.PositiveIntegerField()
     upload_time = models.DateTimeField(validators=[validate_date])
@@ -19,11 +18,16 @@ class Song(models.Model):
     def __str__(self):
         return self.name
 
+    class Meta:
+        abstract = True
 
-class Podcast(models.Model):
-    name = models.CharField(max_length=100)
-    duration_in_sec = models.PositiveIntegerField()
-    upload_time = models.DateTimeField(validators=[validate_date])
+
+# Create your models here.
+class Song(MainClass):
+    pass
+
+
+class Podcast(MainClass):
     host = models.CharField(max_length=100)
     participants = ListCharField(
         base_field=models.CharField(max_length=100),

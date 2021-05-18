@@ -1,182 +1,97 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.http import HttpResponse, HttpResponseRedirect, Http404
-from test_app.models import Audiobook, Podcast, Song
-from .forms import CreateNewSong, CreateNewPodcast, CreateNewAudiobook
+from django.urls import reverse
+from .song import SongCls
+from .podcast import PodcastCls
+from .audiobook import AudiobookCls
 
 
 # Create your views here.
 def get(request, audioFileType, id=0):
-    if id == 0:
-        if audioFileType == "song":
-            ls = Song.objects.all()
-            return render(request, "test_app/get_all.html", {"ls": ls, "type": "song"})
-        elif audioFileType == "podcast":
-            ls = Podcast.objects.all()
-            return render(request, "test_app/get_all.html", {"ls": ls, "type": "podcast"})
-        elif audioFileType == "audiobook":
-            ls = Audiobook.objects.all()
-            return render(request, "test_app/get_all.html", {"ls": ls, "type": "audiobook"})
+    print("get")
+    function_call_dict = {
+        "song": SongCls.get_data,
+        "podcast": PodcastCls.get_data,
+        "audiobook": AudiobookCls.get_data
+    }
+    chosen_operation_function = function_call_dict.get(audioFileType, None)
+    if chosen_operation_function is not None:
+        result_dict = chosen_operation_function(id)
+        if result_dict["status"] == 200:
+            if id == 0:
+                return render(request, "test_app/get_all.html", {"ls": result_dict["value"], "type": audioFileType}, status=200)
+            else:
+                return render(request, "test_app/get.html", {"item": result_dict["value"], "type": audioFileType}, status=200)
         else:
-            return render(request, "test_app/home.html", {"value": "Invalid Request"}, status=400)
+            return render(request, "test_app/home.html", {"value": result_dict["value"]}, status=result_dict["status"])
     else:
-        if audioFileType == "song":
-            try:
-                song = Song.objects.get(id=id)
-            except Song.DoesNotExist:
-                return render(request, "test_app/home.html", {"value": "Song doesn't Exists for given id"}, status=400)
-            return render(request, "test_app/get.html", {"item": song, "type": "song"}, status=200)
-        elif audioFileType == "podcast":
-            try:
-                podcast = Podcast.objects.get(id=id)
-            except Podcast.DoesNotExist:
-                return render(request, "test_app/home.html", {"value": "Podcast doesn't Exists for given id"}, status=400)
-            return render(request, "test_app/get.html", {"item": podcast, "type": "podcast"}, status=200)
-        elif audioFileType == "audiobook":
-            try:
-                audiobook = Audiobook.objects.get(id=id)
-            except Audiobook.DoesNotExist:
-                return render(request, "test_app/home.html", {"value": "Audiobook doesn't Exists for given id"}, status=400)
-            return render(request, "test_app/get.html", {"item": audiobook, "type": "audiobook"}, status=200)
-        else:
-            return render(request, "test_app/home.html", {"value": "Invalid Request"}, status=400)
+        return render(request, "test_app/home.html", {"value":"Invalid Request"},status=400)
 
 
 def create(request, audioFileType):
-    if request.method == "POST":
-        if audioFileType == "song":
-            try:
-                form = CreateNewSong(request.POST)
-                if form.is_valid():
-                    form.save()
-                    return HttpResponseRedirect("/song")
-                else:
-                    return render(request, "test_app/create.html", {"form": form, "type": "song"}, status=500)
-            except Exception as e:
-                return render(request, "test_app/home.html", {"value": "Invalid Request" + str(e)}, status=500)
-        elif audioFileType == "podcast":
-            try:
-                form = CreateNewPodcast(request.POST)
-                if form.is_valid():
-                    form.save()
-                    return HttpResponseRedirect("/podcast")
-                else:
-                    return render(request, "test_app/create.html", {"form": form, "type": "podcast"}, status=500)
-            except Exception as e:
-                return render(request, "test_app/home.html", {"value": "Invalid Request" + str(e)}, status=500)
-        elif audioFileType == "audiobook":
-            try:
-                form = CreateNewAudiobook(request.POST)
-                if form.is_valid():
-                    form.save()
-                    return HttpResponseRedirect("/audiobook")
-                else:
-                    return render(request, "test_app/create.html", {"form": form, "type": "audiobook"}, status=500)
-            except Exception as e:
-                return render(request, "test_app/home.html", {"value": "Invalid Request" + str(e)}, status=500)
+    function_call_dict = {
+        "song": SongCls.create_form,
+        "podcast": PodcastCls.create_form,
+        "audiobook": AudiobookCls.create_form
+    }
+    chosen_operation_function = function_call_dict.get(audioFileType, None)
+    if chosen_operation_function is not None:
+        result_dict = chosen_operation_function(request)
+        status = result_dict["status"]
+        value = result_dict["value"]
+        if status == 200:
+            if value.is_valid():
+                value.save()
+                return HttpResponseRedirect(reverse("get", args=[audioFileType]))
+            else:
+                return render(request, "test_app/create.html", {"form": value, "type": audioFileType}, status=status)
         else:
-            return render(request, "test_app/home.html", {"value": "Invalid Request"}, status=400)
+            return render(request, "test_app/home.html", {"value": value}, status=status)
     else:
-        if audioFileType == "song":
-            form = CreateNewSong()
-            return render(request, "test_app/create.html", {"form": form, "type": "song"})
-        elif audioFileType == "podcast":
-            form = CreateNewPodcast()
-            return render(request, "test_app/create.html", {"form": form, "type": "podcast"})
-        elif audioFileType == "audiobook":
-            form = CreateNewAudiobook()
-            return render(request, "test_app/create.html", {"form": form, "type": "audiobook"})
-        else:
-            return render(request, "test_app/home.html", {"value": "Invalid Request"}, status=400)
+        return render(request, "test_app/home.html", {"value": "Invalid Request"}, status=400)
 
 
 def update(request, audioFileType, id):
-    if request.method == "POST":
-        if audioFileType == "song":
-            try:
-                form = CreateNewSong(request.POST, instance=Song.objects.get(id=id))
-                if form.is_valid():
-                    form.save()
-                    return HttpResponseRedirect("/song")
-                else:
-                    return render(request, "test_app/update.html", {"form": form, "type": "song", "update_id": id})
-            except Exception as e:
-                return render(request, "test_app/home.html", {"value": "Invalid Request" + str(e)}, status=500)
-        elif audioFileType == "podcast":
-            try:
-                form = CreateNewPodcast(request.POST, instance=Podcast.objects.get(id=id))
-                if form.is_valid():
-                    form.save()
-                    return HttpResponseRedirect("/podcast")
-                else:
-                    return render(request, "test_app/update.html", {"form": form, "type": "podcast", "update_id": id})
-            except Exception as e:
-                return render(request, "test_app/home.html", {"value": "Invalid Request" + str(e)}, status=500)
-        elif audioFileType == "audiobook":
-            try:
-                form = CreateNewAudiobook(request.POST, instance=Audiobook.objects.get(id=id))
-                if form.is_valid():
-                    form.save()
-                    return HttpResponseRedirect("/audiobook")
-                else:
-                    return render(request, "test_app/update.html", {"form": form, "type": "audiobook", "update_id": id})
-            except Exception as e:
-                return render(request, "test_app/home.html", {"value": "Invalid Request" + str(e)}, status=500)
+    function_call_dict = {
+        "song": SongCls.update_form,
+        "podcast": PodcastCls.update_form,
+        "audiobook": AudiobookCls.update_form
+    }
+    chosen_operation_function = function_call_dict.get(audioFileType, None)
+    if chosen_operation_function is not None:
+        result_dict = chosen_operation_function(request,id)
+        status = result_dict["status"]
+        form = result_dict["value"]
+        if status == 200:
+            if form.is_valid():
+                form.save()
+                return HttpResponseRedirect(reverse("get", args=[audioFileType]))
+            else:
+                return render(request, "test_app/update.html", {"form": form, "type": audioFileType, "update_id": id}, status=200)
         else:
-            return render(request, "test_app/home.html", {"value": "Invalid Request"}, status=400)
+            return render(request, "test_app/home.html", {"value":form}, status=status)
     else:
-        if audioFileType == "song":
-            try:
-                song = Song.objects.get(id=id)
-                form = CreateNewSong(instance=song)
-            except Song.DoesNotExist:
-                return render(request, "test_app/home.html", {"value": "Invalid Id Update Request"}, status=400)
-            except Exception as e:
-                return render(request, "test_app/home.html", {"value": "Invalid Request" + str(e)}, status=500)
-            return render(request, "test_app/update.html", {"form": form, "type": "song", "update_id": id})
-        elif audioFileType == "podcast":
-            try:
-                podcast = Podcast.objects.get(id=id)
-                form = CreateNewPodcast(instance=podcast)
-            except Podcast.DoesNotExist:
-                return render(request, "test_app/home.html", {"value": "Invalid Id Update Request"}, status=400)
-            except Exception as e:
-                return render(request, "test_app/home.html", {"value": "Invalid Request" + str(e)}, status=500)
-            return render(request, "test_app/update.html", {"form": form, "type": "podcast", "update_id": id})
-        elif audioFileType == "audiobook":
-            try:
-                audiobook = Audiobook.objects.get(id=id)
-                form = CreateNewAudiobook(instance=audiobook)
-            except Audiobook.DoesNotExist:
-                return render(request, "test_app/home.html", {"value": "Invalid Id Update Request"}, status=400)
-            except Exception as e:
-                return render(request, "test_app/home.html", {"value": "Invalid Request" + str(e)}, status=500)
-            return render(request, "test_app/update.html", {"form": form, "type": "audiobook", "update_id": id})
-        else:
-            return render(request, "test_app/home.html", {"value": "Invalid Request"}, status=400)
+        return render(request, "test_app/home.html", {"value": "Invalid Request"}, status=400)
+
 
 
 def delete(request, audioFileType, id):
-    if audioFileType == "song":
-        try:
-            song = Song.objects.get(id=id)
-            song.delete()
-        except Song.DoesNotExist:
-            return render(request, "test_app/home.html", {"value": "Invalid Id Delete Request"}, status=400)
-        return HttpResponseRedirect("/song")
-    elif audioFileType == "podcast":
-        try:
-            podcast = Podcast.objects.get(id=id)
-            podcast.delete()
-        except Podcast.DoesNotExist:
-            return render(request, "test_app/home.html", {"value": "Invalid Id Delete Request"}, status=400)
-        return HttpResponseRedirect("/podcast")
-    elif audioFileType == "audiobook":
-        try:
-            audiobook = Audiobook.objects.get(id=id)
-            audiobook.delete()
-        except Audiobook.DoesNotExist:
-            return render(request, "test_app/home.html", {"value": "Invalid Id Delete Request"}, status=400)
-        return HttpResponseRedirect("/audiobook")
+    print(request,id)
+    function_call_dict = {
+        "song": SongCls.get_data,
+        "podcast": PodcastCls.get_data,
+        "audiobook": AudiobookCls.get_data
+    }
+    chosen_operation_function = function_call_dict.get(audioFileType, None)
+    if chosen_operation_function is not None:
+        result_dict = chosen_operation_function(id)
+        status = result_dict["status"]
+        value = result_dict["value"]
+        if status == 200:
+            value.delete()
+            return HttpResponseRedirect(reverse("get", args=[audioFileType]))
+        else:
+            return render(request, "test_app/home.html", {"value": value}, status=status)
     else:
         return render(request, "test_app/home.html", {"value": "Invalid Request"}, status=400)
 
