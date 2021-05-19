@@ -56,6 +56,8 @@ def create(request, audioFileType):
                 # show all the data of the requested audioFileType
                 return HttpResponseRedirect(reverse("get", args=[audioFileType]))
             else:   # form values are empty/invalid
+                if request.method == "POST":
+                    status = 500    # On POST data provided to store is invalid
                 # return the form to add data
                 return render(request, "test_app/create.html", {"form": value, "type": audioFileType}, status=status)
         else:   # If status is (Not Success) then return with the status and specific message
@@ -86,7 +88,9 @@ def update(request, audioFileType, id):
                 # show all the data of the requested audioFileType
                 return HttpResponseRedirect(reverse("get", args=[audioFileType]))
             else:   # return update form to edit data
-                return render(request, "test_app/update.html", {"form": form, "type": audioFileType, "update_id": id}, status=200)
+                if request.method == "POST":
+                    status = 500    # On POST data provided to store is invalid
+                return render(request, "test_app/update.html", {"form": form, "type": audioFileType, "update_id": id}, status=status)
         else:   # If status is (Not Success) then return with the status and specific message
             return render(request, "test_app/home.html", {"value":form}, status=status)
     else:   # If audioFileType is invalid then return status 400

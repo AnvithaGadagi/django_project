@@ -79,9 +79,7 @@ class SongCreateViewTests(TestCase):
         response = self.client.post(reverse('create', args=("song",)), data=song)
         self.assertEqual(response.status_code, 500)
 
-    def test_no_songs(self):
+    def test_no_of_songs(self):
         response = self.client.get(reverse("get", args=["song"]))
         self.assertEqual(response.status_code, 200)
         self.assertQuerysetEqual(response.context['ls'], Song.objects.all())
-
-class PodcastViewTests()
